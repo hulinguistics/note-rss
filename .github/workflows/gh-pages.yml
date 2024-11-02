@@ -1,0 +1,38 @@
+name: GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  gh-pages:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+      deployments: write
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Download RSS
+        uses: sozo-design/curl@v1.0.2
+        with:
+          args: -o dist/rss.xml https://note.com/huling/m/m8a70e16198cc/rss
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        if: ${{ github.ref == 'refs/heads/main' }}
+        with:
+          path: './dist'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1
+        if: ${{ github.ref == 'refs/heads/main' }}
